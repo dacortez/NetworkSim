@@ -1,7 +1,5 @@
-from netsim.fleet import Fleet
-from netsim.leg import Leg
-from netsim.route import Route
-from netsim.airport import Airport
+from netsim.objects import Airport, Fleet, Leg, Route
+
 
 class Network:
 

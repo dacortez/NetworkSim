@@ -6,5 +6,14 @@ if __name__ == "__main__":
         print 'Uso: python NetworkSim <netline.txt>'
         exit(0)
 
-    parser = NetLineParser(sys.argv[1])
+    file_name = sys.argv[1]
+    parser = NetLineParser(file_name)
+
+    print 'Processando arquivo %s...' % file_name
     parser.parse()
+
+    print 'Airports = %d' % len(parser.network.airports)
+    print 'Fleets   = %d' % len(parser.network.fleets)
+    print 'Legs     = %d' % len(parser.network.legs)
+    print 'Routes   = %d' % len(parser.network.routes)
+    print parser.network

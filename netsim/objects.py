@@ -31,10 +31,21 @@ class Leg:
         self.adt = None
         self.aat = None
         self.route = route
-        self.crew_from = {}
+        self.crew_from_legs = {}
+
+    def add_crew_from(self, crew_complement, leg):
+        for p in range(len(crew_complement)):
+            if p not in self.crew_from_legs:
+                self.crew_from_legs[p] = [leg] * crew_complement[p]
+            else:
+                self.crew_from_legs[p].extend([leg] * crew_complement[p])
 
     def __str__(self):
-        return '%s %s %s %s %s %s' % (self.number, self.fr.code, self.to.code, self.sdt, self.sat, self.route.number)
+        sdtstr = self.sdt.strftime('%d/%m/%y %H:%M')
+        satstr = self.sat.strftime('%H:%M')
+        return '%s %s %s %s %s %s %s' % (
+            self.number, self.fr.code, self.to.code, sdtstr, satstr, self.route.number, str(self.route.fleet)
+        )
 
 
 class Route:

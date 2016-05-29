@@ -37,6 +37,15 @@ class Network:
         for route in self.routes.values():
             route.sort()
 
+    def print_crew_flow(self):
+        for leg in self.legs.values():
+            print '%s' % str(leg)
+            for p in leg.crew_from_legs:
+                from_legs = leg.crew_from_legs[p]
+                print '  POSITION %02d [%d]:' % (p, len(from_legs))
+                for leg_from in from_legs:
+                    print '    %s' % str(leg_from)
+
     def __str__(self):
         sb = []
         for number in sorted(self.routes):

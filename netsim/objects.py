@@ -32,6 +32,8 @@ class Leg:
         self.aat = None
         self.route = route
         self.crew_from_legs = {}
+        self.next = None
+        self.prev = None
 
     def add_crew_from(self, crew_complement, leg):
         for p in range(len(crew_complement)):
@@ -61,6 +63,17 @@ class Route:
 
     def sort(self):
         self.legs = sorted(self.legs, key=lambda leg: leg.sdt)
+        self.__assign_prev_next()
+
+    def __assign_prev_next(self):
+        prev = None
+        for i in range(len(self.legs) - 1):
+            current = self.legs[i]
+            current.prev = prev
+            current.next = self.legs[i + 1]
+            prev = current
+        self.legs[-1].prev = prev
+        self.legs[-1].next = None
 
     def __str__(self):
         sb = []

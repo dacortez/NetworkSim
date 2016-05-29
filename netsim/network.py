@@ -37,6 +37,12 @@ class Network:
         for route in self.routes.values():
             route.sort()
 
+    def print_legs(self):
+        for leg in self.legs.values():
+            print '%s' % str(leg)
+            print '  PREV: %s' % str(leg.prev)
+            print '  NEXT: %s' % str(leg.next)
+
     def print_crew_flow(self):
         for leg in self.legs.values():
             print '%s' % str(leg)
@@ -46,8 +52,12 @@ class Network:
                 for leg_from in from_legs:
                     print '    %s' % str(leg_from)
 
+    def simulate(self):
+        return 0
+
     def __str__(self):
         sb = []
-        for number in sorted(self.routes):
-            sb.append(str(self.routes[number]))
+        for number in sorted(map(int, self.routes)):
+            key = str(number)
+            sb.append(str(self.routes[key]))
         return '\n'.join(sb)

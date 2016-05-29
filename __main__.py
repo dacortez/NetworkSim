@@ -17,7 +17,9 @@ if __name__ == "__main__":
     print 'Fleets   = %d' % len(parser.network.fleets)
     print 'Legs     = %d' % len(parser.network.legs)
     print 'Routes   = %d' % len(parser.network.routes)
-    parser.network.print_crew_flow()
+
+    print parser.network
+    parser.network.print_legs()
 
     data_folder = sys.argv[2]
     btsim = BlockTimeSim(data_folder)

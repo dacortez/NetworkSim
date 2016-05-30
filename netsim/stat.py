@@ -25,4 +25,4 @@ class BlockTimeSim:
         if key in self.kdes:
             return self.kdes[key].resample(1)[0][0]
         else:
-            return -1
+            return None

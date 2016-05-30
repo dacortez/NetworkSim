@@ -34,6 +34,7 @@ class Leg:
         self.crew_from_legs = {}
         self.next = None
         self.prev = None
+        self.block = None
 
     def add_crew_from(self, crew_complement, leg):
         for p in range(len(crew_complement)):
@@ -69,11 +70,16 @@ class Route:
         prev = None
         for i in range(len(self.legs) - 1):
             current = self.legs[i]
-            current.prev = prev
-            current.next = self.legs[i + 1]
+            if prev and prev.to.code == current.fr.code:
+                current.prev = prev
+            next = self.legs[i + 1]
+            if next and current.to.code == next.fr.code:
+                current.next = next
             prev = current
-        self.legs[-1].prev = prev
-        self.legs[-1].next = None
+        last = self.legs[-1]
+        if prev and prev.to.code == last.fr.code:
+            last.prev = prev
+        last.next = None
 
     def __str__(self):
         sb = []

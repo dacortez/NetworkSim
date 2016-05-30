@@ -68,6 +68,4 @@ class NetLineParser:
         flight_number = fields[2]
         sdt = datetime.strptime('%s %s' % (fields[5], fields[6]), '%Y%m%d %H%M')
         key = (flight_number, sdt)
-        if key in self.network.legs:
-            return self.network.legs[key]
-        return None
+        return self.network.legs[key] if key in self.network.legs else None

@@ -35,6 +35,7 @@ class Leg:
         self.next = None
         self.prev = None
         self.block = None
+        self.delay_reason = None
 
     def add_crew_from(self, crew_complement, leg):
         for p in range(len(crew_complement)):

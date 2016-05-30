@@ -22,7 +22,4 @@ class BlockTimeSim:
 
     def get_block(self, fr, to):
         key = '%s%s' % (fr, to)
-        if key in self.kdes:
-            return self.kdes[key].resample(1)[0][0]
-        else:
-            return None
+        return self.kdes[key].resample(1)[0][0] if key in self.kdes else None

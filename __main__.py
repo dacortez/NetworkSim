@@ -1,4 +1,5 @@
 import sys
+import random
 from netsim.netline_parser import NetLineParser
 from netsim.stat import BlockTimeSim
 from netsim.simulator import Simulator
@@ -8,6 +9,8 @@ if __name__ == "__main__":
     if len(sys.argv) < 5:
         print 'Uso: python NetworkSim <netline.txt> <data_folder> <begin:yyyymmdd> <end:yyyymmdd>'
         exit(0)
+
+    random.seed()
 
     file_name = sys.argv[1]
     print 'Processando Network - Arquivo: %s ...' % file_name
@@ -25,6 +28,8 @@ if __name__ == "__main__":
 
     begin = datetime.strptime('%s 0000' % sys.argv[3], '%Y%m%d %H%M')
     end = datetime.strptime('%s 2359' % sys.argv[4], '%Y%m%d %H%M')
-    print 'Iniciando simulação %s %s ...' % (begin, end)
+    print 'Iniciando simulação ...'
     netsim = Simulator(parser.network, btsim)
-    netsim.simulate(begin, end)
+    netsim.simulate_dynamic(begin, end)
+    netsim.output_legs('legs.csv')
+    netsim.output_connections('connections.csv')

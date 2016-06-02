@@ -31,7 +31,7 @@ class NetLineParser:
                     main = fields[11]
                     sub = fields[12]
                     popt = f.readline()
-                    route_number = popt.split('|')[1]
+                    route_number = popt.split('|')[1].strip()
                     self.network.add(flight_number, fr, to, sdt, sat, main, sub, route_number)
                 line = f.readline()
 

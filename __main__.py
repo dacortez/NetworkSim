@@ -1,7 +1,7 @@
 import sys
 import random
 from netsim.netline_parser import NetLineParser
-from netsim.stat import BlockTimeSim
+from netsim.stat import KernelBlockTime, MedianBlockTime
 from netsim.simulator import Simulator
 from datetime import datetime
 
@@ -23,13 +23,13 @@ if __name__ == "__main__":
 
     data_folder = sys.argv[2]
     print 'Processando dados - Pasta: %s ...' % data_folder
-    btsim = BlockTimeSim(data_folder)
-    btsim.init()
+    btgen = MedianBlockTime(data_folder)
+    #btgen = KernelBlockTime(data_folder)
+    btgen.init()
 
     begin = datetime.strptime('%s 0000' % sys.argv[3], '%Y%m%d %H%M')
     end = datetime.strptime('%s 2359' % sys.argv[4], '%Y%m%d %H%M')
     print 'Iniciando simulação ...'
-    netsim = Simulator(parser.network, btsim)
+    netsim = Simulator(parser.network, btgen)
     netsim.simulate_dynamic(begin, end)
-    netsim.output_legs('legs.csv')
-    netsim.output_connections('connections.csv')
+    netsim.output('legs.csv')

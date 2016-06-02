@@ -3,9 +3,9 @@ from datetime import datetime, timedelta
 
 class Simulator:
 
-    def __init__(self, network, btsim):
+    def __init__(self, network, btgen):
         self.network = network
-        self.btsim = btsim
+        self.btgen = btgen
         self.legs = []
 
     def clear(self):
@@ -16,57 +16,49 @@ class Simulator:
             leg.delay_reason = None
         self.legs = []
 
-    def output_legs(self, file_name):
+    def output(self, file_name):
         with open(file_name, 'a') as f:
-            for leg in self.legs:
-                sdtstr = leg.sdt.strftime('%d/%m/%y %H:%M')
-                satstr = leg.sat.strftime('%d/%m/%y %H:%M')
-                adtstr = leg.adt.strftime('%d/%m/%y %H:%M')
-                aatstr = leg.aat.strftime('%d/%m/%y %H:%M')
-                block = '%02d:%02d' % (int(leg.block), 60 * (leg.block - int(leg.block)))
-                delay = (leg.adt - leg.sdt).seconds / 60
-                output = '%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%d\n' % (
-                    leg.number.strip(),
-                    leg.fr.code,
-                    leg.to.code,
-                    sdtstr,
-                    satstr,
-                    adtstr,
-                    aatstr,
-                    block,
-                    leg.route.number,
-                    str(leg.route.fleet),
-                    leg.delay_reason,
-                    delay
-                )
-                f.write(output)
-
-    def output_connections(self, file_name):
-        with open(file_name, 'a') as f:
-            for leg in self.legs:
-                next = leg.next
-                plan_cnx = (next.sdt - leg.sat).seconds / 60 if next and next.sdt else ''
-                exec_cnx = (next.adt - leg.aat).seconds / 60 if next and next.adt else ''
-                sdtstr = leg.sdt.strftime('%d/%m/%y %H:%M')
-                satstr = leg.sat.strftime('%H:%M')
-                output = '%s;%s;%s;%s;%s;%s;%s\n' % (
-                    leg.number.strip(),
-                    leg.fr.code,
-                    leg.to.code,
-                    sdtstr,
-                    satstr,
-                    plan_cnx,
-                    exec_cnx
-                )
-                f.write(output)
+            for number in sorted(map(int, self.network.routes)):
+                for leg in self.network.routes[str(number)].legs:
+                    if leg.delay_reason is not None:
+                        sdtstr = leg.sdt.strftime('%d/%m/%y %H:%M:%S')
+                        satstr = leg.sat.strftime('%d/%m/%y %H:%M:%S')
+                        adtstr = leg.adt.strftime('%d/%m/%y %H:%M:%S')
+                        aatstr = leg.aat.strftime('%d/%m/%y %H:%M:%S')
+                        block_m = (leg.sat - leg.sdt).total_seconds() / 60
+                        plan_block = '%02d:%02d' % (int(block_m / 60), block_m % 60)
+                        exec_block = '%02d:%02d' % (int(leg.block / 60), leg.block % 60)
+                        dep_delay = (leg.adt - leg.sdt).total_seconds() / 60
+                        arr_delay = (leg.aat - leg.sat).total_seconds() / 60
+                        next = leg.next
+                        plan_cnx = int((next.sdt - leg.sat).total_seconds() / 60) if next and next.sdt else ''
+                        exec_cnx = int((next.adt - leg.aat).total_seconds() / 60) if next and next.adt else ''
+                        output = '%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%d;%d;%s;%s\n' % (
+                            leg.route.number,
+                            str(leg.route.fleet),
+                            leg.number.strip(),
+                            leg.fr.code,
+                            leg.to.code,
+                            sdtstr,
+                            satstr,
+                            plan_block,
+                            adtstr,
+                            aatstr,
+                            exec_block,
+                            leg.delay_reason,
+                            dep_delay,
+                            arr_delay,
+                            plan_cnx,
+                            exec_cnx
+                        )
+                        f.write(output)
 
     def simulate_static(self, begin, end):
         self.__filter_and_sort_legs(begin, end)
         for leg in self.legs:
-            block = self.btsim.get_block(leg.fr.code, leg.to.code)
-            leg.block = block if block else (leg.sat - leg.sdt).seconds / 3600.0
+            self.__set_block_time(leg)
             leg.adt = leg.sdt
-            leg.aat = leg.sdt + timedelta(hours=leg.block)
+            leg.aat = leg.sdt + timedelta(minutes=leg.block)
             leg.delay_reason = 'ST'
 
     def simulate_dynamic(self, begin, end):
@@ -81,13 +73,17 @@ class Simulator:
             else:
                 leg.adt = leg.sdt
                 leg.delay_reason = 'NA'
-            block = self.btsim.get_block(leg.fr.code, leg.to.code)
-            leg.block = block if block else (leg.sat - leg.sdt).seconds / 3600.0
-            leg.aat = leg.adt + timedelta(hours=leg.block)
+            self.__set_block_time(leg)
+            leg.aat = leg.adt + timedelta(minutes=leg.block)
 
     def __filter_and_sort_legs(self, begin, end):
         self.legs = filter(lambda x: begin <= x.sdt <= end, self.network.legs.values())
         self.legs = sorted(self.legs, key=lambda leg: leg.sdt)
+
+    def __set_block_time(self, leg):
+        block_h = self.btgen.get_block(leg.fr.code, leg.to.code)
+        block_m = round(60.0 * block_h, 0) if block_h else None
+        leg.block = block_m if block_m else (leg.sat - leg.sdt).seconds / 60
 
     @staticmethod
     def __get_max_time(aircraft_time, crew_time):
@@ -109,12 +105,12 @@ class Simulator:
     @staticmethod
     def __get_aircraft_turn_around(airport, fleet):
         if fleet.main == 'B73G':
-            if airport.code in ['CGH', 'GRU', 'BSB', 'POA', 'GIG', 'SDU']:
+            if airport.code in ['CGH', 'GRU', 'BSB', 'GIG', 'EZE']:
                 return 40
             else:
                 return 30
         else:
-            if airport.code in ['CGH', 'GRU', 'BSB', 'POA', 'GIG', 'SDU']:
+            if airport.code in ['CGH', 'GRU', 'BSB', 'GIG', 'EZE']:
                 return 40
             else:
                 return 30
@@ -132,12 +128,12 @@ class Simulator:
     @staticmethod
     def __get_crew_turn_around(airport, fleet):
         if fleet.main == 'B73G':
-            if airport.code in ['CGH', 'GRU', 'BSB', 'POA', 'GIG', 'SDU']:
-                return 40
+            if airport.code in ['CGH', 'GRU', 'BSB', 'GIG', 'EZE']:
+                return 0
             else:
-                return 30
+                return 0
         else:
-            if airport.code in ['CGH', 'GRU', 'BSB', 'POA', 'GIG', 'SDU']:
-                return 40
+            if airport.code in ['CGH', 'GRU', 'BSB', 'GIG', 'EZE']:
+                return 0
             else:
-                return 30
+                return 0

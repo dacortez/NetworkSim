@@ -32,8 +32,9 @@ class Simulator:
                         arr_delay = (leg.aat - leg.sat).total_seconds() / 60
                         next = leg.next
                         plan_cnx = int((next.sdt - leg.sat).total_seconds() / 60) if next and next.sdt else ''
+                        proj_cnx = int((next.sdt - leg.aat).total_seconds() / 60) if next and next.adt else ''
                         exec_cnx = int((next.adt - leg.aat).total_seconds() / 60) if next and next.adt else ''
-                        output = '%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%d;%d;%s;%s\n' % (
+                        output = '%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%d;%d;%s;%s;%s\n' % (
                             leg.route.number,
                             str(leg.route.fleet),
                             leg.number.strip(),
@@ -49,19 +50,12 @@ class Simulator:
                             dep_delay,
                             arr_delay,
                             plan_cnx,
+                            proj_cnx,
                             exec_cnx
                         )
                         f.write(output)
 
-    def simulate_static(self, begin, end):
-        self.__filter_and_sort_legs(begin, end)
-        for leg in self.legs:
-            self.__set_block_time(leg)
-            leg.adt = leg.sdt
-            leg.aat = leg.sdt + timedelta(minutes=leg.block)
-            leg.delay_reason = 'ST'
-
-    def simulate_dynamic(self, begin, end):
+    def simulate(self, begin, end):
         self.__filter_and_sort_legs(begin, end)
         for leg in self.legs:
             aircraft_time = Simulator.__get_aircraft_time(leg)
@@ -72,7 +66,7 @@ class Simulator:
                 leg.delay_reason = 'CR' if max_time == crew_time else 'TR'
             else:
                 leg.adt = leg.sdt
-                leg.delay_reason = 'NA'
+                leg.delay_reason = 'OK'
             self.__set_block_time(leg)
             leg.aat = leg.adt + timedelta(minutes=leg.block)
 
@@ -105,12 +99,12 @@ class Simulator:
     @staticmethod
     def __get_aircraft_turn_around(airport, fleet):
         if fleet.main == 'B73G':
-            if airport.code in ['CGH', 'GRU', 'BSB', 'GIG', 'EZE']:
-                return 40
+            if airport.code in ['CGH', 'GRU', 'GIG', 'BSB', 'EZE']:
+                return 30
             else:
                 return 30
         else:
-            if airport.code in ['CGH', 'GRU', 'BSB', 'GIG', 'EZE']:
+            if airport.code in ['CGH', 'GRU', 'GIG', 'BSB', 'EZE']:
                 return 40
             else:
                 return 30
@@ -128,12 +122,12 @@ class Simulator:
     @staticmethod
     def __get_crew_turn_around(airport, fleet):
         if fleet.main == 'B73G':
-            if airport.code in ['CGH', 'GRU', 'BSB', 'GIG', 'EZE']:
+            if airport.code in ['GRU', 'GIG', 'BSB', 'EZE']:
                 return 0
             else:
                 return 0
         else:
-            if airport.code in ['CGH', 'GRU', 'BSB', 'GIG', 'EZE']:
+            if airport.code in ['GRU', 'GIG', 'BSB', 'EZE']:
                 return 0
             else:
                 return 0

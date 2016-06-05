@@ -31,5 +31,5 @@ if __name__ == "__main__":
     end = datetime.strptime('%s 2359' % sys.argv[4], '%Y%m%d %H%M')
     print 'Iniciando simulação ...'
     netsim = Simulator(parser.network, btgen)
-    netsim.simulate_dynamic(begin, end)
+    netsim.simulate(begin, end)
     netsim.output('legs.csv')

@@ -7,7 +7,7 @@ from datetime import datetime
 
 if __name__ == "__main__":
     if len(sys.argv) < 5:
-        print 'Uso: python NetworkSim <netline.txt> <data_folder> <begin:yyyymmdd> <end:yyyymmdd>'
+        print 'Uso: python NetworkSim <pairings.txt> <block_folder> <begin:yyyymmdd> <end:yyyymmdd>'
         exit(0)
 
     random.seed()

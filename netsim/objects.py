@@ -9,12 +9,9 @@ class Airport:
 
 class Fleet:
 
-    def __init__(self, main, sub, crew_need=None):
+    def __init__(self, main, sub):
         self.main = main
         self.sub = sub
-        if crew_need is None:
-            crew_need = [1, 1, 0, 0, 0, 1, 0, 0, 3, 0, 0, 0]
-        self.crew_need = crew_need
 
     def __str__(self):
         return '%s/%s' % (self.main, self.sub)
@@ -36,13 +33,16 @@ class Leg:
         self.prev = None
         self.block = None
         self.delay_reason = None
+        self.last_crew_leg = None
 
+    # crew_complement = [1, 1, 0, 0, 0, 1, 0, 0, 3, 0, 0, 0]
+    # self.crew_from_legs[pos] = [leg, ..., leg]
     def add_crew_from(self, crew_complement, leg):
-        for p in range(len(crew_complement)):
-            if p not in self.crew_from_legs:
-                self.crew_from_legs[p] = [leg] * crew_complement[p]
+        for pos in range(len(crew_complement)):
+            if pos not in self.crew_from_legs:
+                self.crew_from_legs[pos] = [leg] * crew_complement[pos]
             else:
-                self.crew_from_legs[p].extend([leg] * crew_complement[p])
+                self.crew_from_legs[pos].extend([leg] * crew_complement[pos])
 
     def __str__(self):
         sdtstr = self.sdt.strftime('%d/%m/%y %H:%M')
@@ -65,9 +65,9 @@ class Route:
 
     def sort(self):
         self.legs = sorted(self.legs, key=lambda leg: leg.sdt)
-        self.__assign_prev_next()
+        self.__assign_prev_next__()
 
-    def __assign_prev_next(self):
+    def __assign_prev_next__(self):
         prev = None
         for i in range(len(self.legs) - 1):
             current = self.legs[i]

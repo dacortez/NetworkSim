@@ -9,13 +9,13 @@ class NetLineParser:
         self.network = Network()
 
     def parse(self):
-        self.__parse_legs()
-        self.__parse_crew_flow()
+        self.__parse_legs__()
+        self.__parse_crew_flow__()
         self.network.sort_routes()
 
     # PLEG|20150506|G3 1567|IGU|CGH|20150506|1630|1805|20150506|1630|1805|B738|73M|G3|G3
     # POPT|-82678574|
-    def __parse_legs(self):
+    def __parse_legs__(self):
         with open(self.file_name, 'r') as f:
             line = f.readline()
             while line:
@@ -45,7 +45,7 @@ class NetLineParser:
     # POPT|41|
     # POPT|2:11|0:00
     # PFTR|20150424|G31313|CNF|CGH|20150424|1728|1840|20150424|1728|1840
-    def __parse_crew_flow(self):
+    def __parse_crew_flow__(self):
         with open(self.file_name, 'r') as f:
             line = f.readline()
             while line:
@@ -54,17 +54,17 @@ class NetLineParser:
                     crew_complement = map(int, fields[1:13])
                     from_leg = None
                 elif fields[0] == 'PLEG':
-                    current_leg = self.__get_leg(fields)
+                    current_leg = self.__get_leg__(fields)
                     if current_leg is not None:
                         current_leg.add_crew_from(crew_complement, from_leg)
                     from_leg = current_leg
                 elif fields[0] == 'PFTR':
-                    from_leg = self.__get_leg(fields)
+                    from_leg = self.__get_leg__(fields)
                 elif fields[0] == 'POPT' and ':' in fields[1]:
                     from_leg = None
                 line = f.readline()
 
-    def __get_leg(self, fields):
+    def __get_leg__(self, fields):
         flight_number = fields[2]
         sdt = datetime.strptime('%s %s' % (fields[5], fields[6]), '%Y%m%d %H%M')
         key = (flight_number, sdt)

@@ -8,19 +8,19 @@ plot.file <- 'plots.pdf'
 MONTHS <- c('Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez')
 WDAYS <- c('Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab')
 
-if (length(args) != 5) {
-    cat('Uso: Rscript analysis.R <legs1.csv> <mmyyyy> <legs2.csv> <mmyyyy> <cutoff>\n')
+if (length(args) != 7) {
+    cat('Uso: Rscript analysis.R <legs1.csv> <name1> <mmyyyy> <legs2.csv> <name2> <mmyyyy> <cutoff>\n')
     stop()
 } else {
     file1 <- args[1]
-    month1 <- as.integer(substr(args[2], 1, 2))
-    year1 <- as.integer(substr(args[2], 3, 6))
-    file2 <- args[3]
-    month2 <- as.integer(substr(args[4], 1, 2))
-    year2 <- as.integer(substr(args[4], 3, 6))
-    cutoff <- as.integer(args[5])
-    name1 <- sprintf('%s/%02d', MONTHS[month1], year1 - 2000)
-    name2 <- sprintf('%s/%02d', MONTHS[month2], year2 - 2000)
+    name1 <- args[2]
+    month1 <- as.integer(substr(args[3], 1, 2))
+    year1 <- as.integer(substr(args[3], 3, 6))
+    file2 <- args[4]
+    name2 <- args[5]
+    month2 <- as.integer(substr(args[6], 1, 2))
+    year2 <- as.integer(substr(args[6], 3, 6))
+    cutoff <- as.integer(args[7])
 }
 
 ##### Funções
@@ -216,33 +216,37 @@ for (org in bases) {
 
 #### Pontualidade mensal
 
-d1 <- GetPeriodOrgDelay(x1, cutoff=0)
-d2 <- GetPeriodOrgDelay(x2, cutoff=0)
-plot(d1[[1]], d1[[2]], main='Pontualidade no Período', 
-    ylim=c(85, 100), col='red', type='o', ylab='Pontualidade (%)', xlab='Dia do Mês')
+d1 <- GetPeriodOrgDelay(x1, cutoff=cutoff)
+d2 <- GetPeriodOrgDelay(x2, cutoff=cutoff)
+plot(d1[[1]], d1[[2]], main=sprintf('Pontualidade no Período [%d minutos]', cutoff), 
+    ylim=c(80, 100), col='red', type='o', ylab='Pontualidade (%)', xlab='Dia do Mês')
+text(d1[[1]], d1[[2]], sprintf('%3.1f', d1[[2]]), pos=3, cex=0.5)
 par(new=T) 
-plot(d2[[1]], d2[[2]], ylim=c(85, 100), col='blue', type='o', axes=F, xlab='', ylab='')
-legend("topleft", legend=c(name1, name2), col=c('red', 'blue'), lty=1:2, cex=0.8)
+plot(d2[[1]], d2[[2]], 
+    ylim=c(80, 100), col='blue', type='o', axes=F, xlab='', ylab='')
+text(d2[[1]], d2[[2]], sprintf('%3.1f', d2[[2]]), pos=3, cex=0.5)
+legend("topleft", legend=c(name1, name2), col=c('red', 'blue'), lty=c(1, 1), cex=0.8)
 
 #### Pontualidade diária
 
-days1 <- as.Date(x1$SDT, format='%d/%m/%y')
-days2 <- as.Date(x1$SDT, format='%d/%m/%y')
-days <- seq(from=max(min(days1), min(days2)), to=min(max(days1), max(days2)), by=1)
-for (i in 1:length(days)) {
-    date <- as.POSIXlt(days[i]) 
-    day <- date$mday
+# Consertar
+for (i in 1:30) {
+    day <- i
     cat(sprintf('Plotando pontualidade dia %02d...\n', day))
-    d1 <- GetDailyOrgDelay(x1, day=day, month=month1, year=year1, cutoff=0)
-    d2 <- GetDailyOrgDelay(x2, day=day, month=month2, year=year2, cutoff=0)
-    plot(d1[[1]], d1[[2]], main=sprintf('Pontualidade Dia %02d', day),
-        ylim=c(80, 100), type='o', col='red', ylab='Pontualidade (%)', xlab='Hora do Dia')
+    d1 <- GetDailyOrgDelay(x1, day=day, month=month1, year=year1, cutoff=cutoff)
+    d2 <- GetDailyOrgDelay(x2, day=day, month=month2, year=year2, cutoff=cutoff)
+    plot(d1[[1]], d1[[2]], main=sprintf('Pontualidade Dia %02d [%d minutos]', day, cutoff), 
+        ylim=c(70, 100), type='o', col='red', axes=F, ylab='Pontualidade (%)', xlab='Hora do Dia')
+    axis(1, at=seq(0, 24, 1))
+    axis(2)
+    box()
     par(new=T) 
-    plot(d2[[1]], d2[[2]], ylim=c(80, 100), type='o', col='blue', axes=F, ylab='', xlab='')
+    plot(d2[[1]], d2[[2]], 
+        ylim=c(70, 100), type='o', col='blue', axes=F, ylab='', xlab='')
     wday1 <- WDAYS[as.POSIXlt(ISOdate(year1, month1, day))$wday + 1]
     wday2 <- WDAYS[as.POSIXlt(ISOdate(year2, month2, day))$wday + 1]
-    legend("bottomleft", legend=c(sprintf('%s (%s)', name1, wday1), sprintf('%s (%s)', name2, wday2)), 
-        col=c('red', 'blue'), lty=1:2, cex=0.8)
+    legend("topright", legend=c(sprintf('%s (%s)', name1, wday1), sprintf('%s (%s)', name2, wday2)), 
+        col=c('red', 'blue'), lty=c(1, 1), cex=0.8)
 }
 
 dev.off()

@@ -1,12 +1,27 @@
 import os
 import numpy as np
 from scipy import stats
+from abc import ABCMeta, abstractmethod
 
-
-class KernelBlockTime:
+class BlockTime:
+    __metaclass__ = ABCMeta
 
     def __init__(self, data_folder):
         self.data_folder = data_folder
+
+    @abstractmethod
+    def init(self):
+        pass
+
+    @abstractmethod
+    def get_block(self, fr, to):
+        pass
+
+
+class Kernel(BlockTime):
+
+    def __init__(self, data_folder):
+        super(Kernel, self).__init__(data_folder)
         self.kdes = {}
 
     def init(self):
@@ -26,9 +41,10 @@ class KernelBlockTime:
         return self.kdes[key].resample(1)[0][0] if key in self.kdes else None
 
 
-class MedianBlockTime:
-    def __init__(self, data_folder):
-        self.data_folder = data_folder
+class Percentile(BlockTime):
+    def __init__(self, data_folder, percentile=50):
+        super(Percentile, self).__init__(data_folder)
+        self.percentile = percentile
         self.data = {}
 
     def init(self):
@@ -41,4 +57,4 @@ class MedianBlockTime:
 
     def get_block(self, fr, to):
         key = '%s%s' % (fr, to)
-        return np.median(self.data[key]) if key in self.data else None
+        return np.percentile(self.data[key], self.percentile) if key in self.data else None

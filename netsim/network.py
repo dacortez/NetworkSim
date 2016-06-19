@@ -8,14 +8,14 @@ class Network:
         self.fleets = {}
         self.routes = {}
         self.legs = {}
-        self.__add_known_fleets()
+        self.__add_known_fleets__()
 
-    def __add_known_fleets(self):
-        self.fleets[('B738', '738')] = Fleet(main='B738', sub='738', crew_need=[1, 1, 0, 0, 0, 1, 0, 0, 3, 0, 0, 0])
-        self.fleets[('B738', '73A')] = Fleet(main='B738', sub='73A', crew_need=[1, 1, 0, 0, 0, 1, 0, 0, 3, 0, 0, 0])
-        self.fleets[('B738', '73M')] = Fleet(main='B738', sub='73M', crew_need=[1, 1, 0, 0, 0, 1, 0, 0, 3, 0, 0, 0])
-        self.fleets[('B73H', '73H')] = Fleet(main='B73H', sub='73H', crew_need=[1, 1, 0, 0, 0, 1, 0, 0, 3, 0, 0, 0])
-        self.fleets[('B73G', '73G')] = Fleet(main='B73G', sub='73G', crew_need=[1, 1, 0, 0, 0, 1, 0, 0, 2, 0, 0, 0])
+    def __add_known_fleets__(self):
+        self.fleets[('B738', '738')] = Fleet(main='B738', sub='738')
+        self.fleets[('B738', '73A')] = Fleet(main='B738', sub='73A')
+        self.fleets[('B738', '73M')] = Fleet(main='B738', sub='73M')
+        self.fleets[('B73H', '73H')] = Fleet(main='B73H', sub='73H')
+        self.fleets[('B73G', '73G')] = Fleet(main='B73G', sub='73G')
 
     def add(self, flight_number, fr, to, sdt, sat, main, sub, route_number):
         key = (flight_number, sdt)
@@ -51,9 +51,6 @@ class Network:
                 print '  POSITION %02d [%d]:' % (p, len(from_legs))
                 for leg_from in from_legs:
                     print '    %s' % str(leg_from)
-
-    def simulate(self):
-        return 0
 
     def __str__(self):
         sb = []

@@ -8,8 +8,8 @@ plot.file <- 'plots.pdf'
 MONTHS <- c('Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez')
 WDAYS <- c('Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab')
 
-if (length(args) != 7) {
-    cat('Uso: Rscript analysis.R <legs1.csv> <name1> <mmyyyy> <legs2.csv> <name2> <mmyyyy> <cutoff>\n')
+if (length(args) != 9) {
+    cat('Uso: Rscript analysis.R <legs1.csv> <name1> <mmyyyy> <legs2.csv> <name2> <mmyyyy> <cutoff> <day.i> <day.f>\n')
     stop()
 } else {
     file1 <- args[1]
@@ -21,6 +21,8 @@ if (length(args) != 7) {
     month2 <- as.integer(substr(args[6], 1, 2))
     year2 <- as.integer(substr(args[6], 3, 6))
     cutoff <- as.integer(args[7])
+    day.i <- as.integer(args[8])
+    day.f <- as.integer(args[9])
 }
 
 ##### Funções
@@ -105,11 +107,20 @@ cnames <- c(
     "DES.DELAY",
     "PL.CNX",
     "PR.CNX",
-    "EX.CNX"
+    "EX.CNX",
+    "CR.ROUTE",
+    "CR.FLEET",
+    "CR.NUMBER",
+    "CR.ORG",
+    "CR.DES",
+    "CR.SDT",
+    "CR.SAT",
+    "CR.ADT",
+    "CR.AAT"
 )
 
-x1 <- read.csv(file1, header=F, sep=';')
-x2 <- read.csv(file2, header=F, sep=';')
+x1 <- read.csv(file1, header=T, sep=';')
+x2 <- read.csv(file2, header=T, sep=';')
 
 colnames(x1) <- cnames
 colnames(x2) <- cnames
@@ -117,11 +128,11 @@ colnames(x2) <- cnames
 #### Atrasos na Saída
 
 cat('==========================================================================\n')
-cat('Atrasos na Saida\n')
+cat('Atrasos na Saída\n')
 cat('==========================================================================\n\n')
 
-dep1 <- x1[x1$CODE == 'TR', 'ORG.DELAY']
-dep2 <- x2[x2$CODE == 'TR', 'ORG.DELAY']
+dep1 <- x1[x1$ORG.DELAY > 0, 'ORG.DELAY']
+dep2 <- x2[x2$ORG.DELAY > 0, 'ORG.DELAY']
 per1 <- 100 * length(dep1) / nrow(x1)
 per2 <- 100 * length(dep2) / nrow(x2)
 del1 <- sum(dep1) / nrow(x1)
@@ -131,11 +142,11 @@ cat(sprintf('Total %s = %d (%5.2f%%) [Delta = %5.2f%%]\n', name2, length(dep2), 
 cat(sprintf('Atrasado médio %s = %5.3f\n', name1, del1))
 cat(sprintf('Atrasado médio %s = %5.3f [Delta = %5.2f%%]\n', name2, del2, 100 * (del2 - del1) / del1))
 print(t.test(dep1, dep2))
-boxplot(dep1, dep2, names=c(name1, name2), col=c('orange', 'green'), main='Atraso na Saida', ylab='Atraso (min)')
+boxplot(dep1, dep2, names=c(name1, name2), col=c('orange', 'green'), main='Atraso na Saída', ylab='Atraso (min)')
 dep1 <- GetDelayTimes(x1, org=T, delay=T, cutoff=cutoff, size=15)
 dep2 <- GetDelayTimes(x2, org=T, delay=T, cutoff=cutoff, size=15)
-pareto.chart(dep1, main=sprintf('Atrasos > %d na Saída (%s)', cutoff, name1), ylab='Total', ylab2='', cex.names=0.8)
-pareto.chart(dep2, main=sprintf('Atrasos > %d na Saída (%s)', cutoff, name2), ylab='Total', ylab2='', cex.names=0.8)
+pareto.chart(dep1, main=sprintf('Atrasos > %d na Saída: %s', cutoff, name1), ylab='Total', ylab2='', cex.names=0.8)
+pareto.chart(dep2, main=sprintf('Atrasos > %d na Saída: %s', cutoff, name2), ylab='Total', ylab2='', cex.names=0.8)
 
 #### Atrasos na Chegada
 
@@ -157,8 +168,8 @@ print(t.test(arr1, arr2))
 boxplot(arr1, arr2, names=c(name1, name2), col=c('orange', 'green'), main='Atraso na Chegada', ylab='Atraso (min)')
 arr1 <- GetDelayTimes(x1, org=F, delay=T, cutoff=cutoff, size=15)
 arr2 <- GetDelayTimes(x2, org=F, delay=T, cutoff=cutoff, size=15)
-pareto.chart(arr1, main=sprintf('Atrasos > %d na Chegada (%s)', cutoff, name1), ylab='Total', ylab2='', cex.names=0.8)
-pareto.chart(arr2, main=sprintf('Atrasos > %d na Chegada (%s)', cutoff, name2), ylab='Total', ylab2='', cex.names=0.8)
+pareto.chart(arr1, main=sprintf('Atrasos > %d na Chegada: %s', cutoff, name1), ylab='Total', ylab2='', cex.names=0.8)
+pareto.chart(arr2, main=sprintf('Atrasos > %d na Chegada: %s', cutoff, name2), ylab='Total', ylab2='', cex.names=0.8)
 
 #### Atrasos na Chegada
 
@@ -180,8 +191,8 @@ print(t.test(arr1, arr2))
 boxplot(arr1, arr2, names=c(name1, name2), col=c('orange', 'green'), main='Antecipação na Chegada', ylab='Antecipação (min)')
 arr1 <- GetDelayTimes(x1, org=F, delay=F, cutoff=cutoff, size=15)
 arr2 <- GetDelayTimes(x2, org=F, delay=F, cutoff=cutoff, size=15)
-pareto.chart(arr1, main=sprintf('Antecipações < -%d na Chegada (%s)', cutoff, name1), ylab='Total', ylab2='', cex.names=0.8)
-pareto.chart(arr2, main=sprintf('Antecipações < -%d na Chegada (%s)', cutoff, name2), ylab='Total', ylab2='', cex.names=0.8)
+pareto.chart(arr1, main=sprintf('Antecipações < -%d na Chegada: %s', cutoff, name1), ylab='Total', ylab2='', cex.names=0.8)
+pareto.chart(arr2, main=sprintf('Antecipações < -%d na Chegada: %s', cutoff, name2), ylab='Total', ylab2='', cex.names=0.8)
 
 #### Tempos de Solo
 
@@ -216,33 +227,35 @@ for (org in bases) {
 
 #### Pontualidade mensal
 
+ylim.mim <- 90
+
 d1 <- GetPeriodOrgDelay(x1, cutoff=cutoff)
 d2 <- GetPeriodOrgDelay(x2, cutoff=cutoff)
 plot(d1[[1]], d1[[2]], main=sprintf('Pontualidade no Período [%d minutos]', cutoff), 
-    ylim=c(80, 100), col='red', type='o', ylab='Pontualidade (%)', xlab='Dia do Mês')
+    ylim=c(ylim.mim, 100), col='red', type='o', ylab='Pontualidade (%)', xlab='Dia do Mês')
 text(d1[[1]], d1[[2]], sprintf('%3.1f', d1[[2]]), pos=3, cex=0.5)
 par(new=T) 
 plot(d2[[1]], d2[[2]], 
-    ylim=c(80, 100), col='blue', type='o', axes=F, xlab='', ylab='')
+    ylim=c(ylim.mim, 100), col='blue', type='o', axes=F, xlab='', ylab='')
 text(d2[[1]], d2[[2]], sprintf('%3.1f', d2[[2]]), pos=3, cex=0.5)
 legend("topleft", legend=c(name1, name2), col=c('red', 'blue'), lty=c(1, 1), cex=0.8)
 
 #### Pontualidade diária
 
-# Consertar
-for (i in 1:30) {
-    day <- i
+ylim.mim <- 90
+
+for (day in day.i:day.f) {
     cat(sprintf('Plotando pontualidade dia %02d...\n', day))
     d1 <- GetDailyOrgDelay(x1, day=day, month=month1, year=year1, cutoff=cutoff)
     d2 <- GetDailyOrgDelay(x2, day=day, month=month2, year=year2, cutoff=cutoff)
     plot(d1[[1]], d1[[2]], main=sprintf('Pontualidade Dia %02d [%d minutos]', day, cutoff), 
-        ylim=c(70, 100), type='o', col='red', axes=F, ylab='Pontualidade (%)', xlab='Hora do Dia')
+        ylim=c(ylim.mim, 100), type='o', col='red', axes=F, ylab='Pontualidade (%)', xlab='Hora do Dia')
     axis(1, at=seq(0, 24, 1))
     axis(2)
     box()
     par(new=T) 
     plot(d2[[1]], d2[[2]], 
-        ylim=c(70, 100), type='o', col='blue', axes=F, ylab='', xlab='')
+        ylim=c(ylim.mim, 100), type='o', col='blue', axes=F, ylab='', xlab='')
     wday1 <- WDAYS[as.POSIXlt(ISOdate(year1, month1, day))$wday + 1]
     wday2 <- WDAYS[as.POSIXlt(ISOdate(year2, month2, day))$wday + 1]
     legend("topright", legend=c(sprintf('%s (%s)', name1, wday1), sprintf('%s (%s)', name2, wday2)), 

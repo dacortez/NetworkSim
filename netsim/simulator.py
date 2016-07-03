@@ -136,7 +136,7 @@ class Simulator:
             return 30
         else:
             if airport.code in ['CGH']:
-                return 40
+                return 30
             elif airport.code in ['GRU', 'GIG', 'BSB', 'EZE']:
                 return 40
             else:
@@ -144,6 +144,6 @@ class Simulator:
 
     def __get_crew_min_connection__(self, airport):
         if airport.code in ['CGH', 'GRU', 'GIG', 'BSB']:
-            return 50
+            return 0
         else:
-            return 30
+            return 0
